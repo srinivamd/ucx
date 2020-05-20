@@ -10,12 +10,14 @@ RUN apt-get update && \
         g++ \
         git \
         openjdk-8-jdk \
+        libcap2 \
         libnuma-dev \
         libtool \
         make \
         maven \
+        udev \
         wget \
-    && apt-get remove openjdk-11-* || apt-get autoremove \
+    && apt-get remove -y openjdk-11-* || apt-get autoremove -y \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # MOFED
@@ -27,8 +29,6 @@ ENV MOFED_SITE_PLACE MLNX_OFED-${MOFED_VERSION}
 ENV MOFED_IMAGE ${MOFED_DIR}.tgz
 RUN wget --no-verbose http://content.mellanox.com/ofed/${MOFED_SITE_PLACE}/${MOFED_IMAGE} && \
     tar -xzf ${MOFED_IMAGE}
-RUN apt-get update && apt-get install -y udev
-RUN apt-get update && apt-get install -y libcap2
 RUN ${MOFED_DIR}/mlnxofedinstall --all -q \
         --user-space-only \
         --without-fw-update \
