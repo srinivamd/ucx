@@ -26,6 +26,22 @@ resources:
       image: rdmz-harbor.rdmz.labs.mlnx/ucx/ubuntu18.04-mofed5.0-cuda10.2:1
 
 stages:
+  # Create an empty draft to avoid race condition in distro releases
+  - stage: GitHubDraft
+    jobs:
+      - job: DraftRelease
+        steps:
+        - task: GithubRelease@0
+          displayName: Create/edit GitHub Draft Release
+          inputs:
+            githubConnection: release
+            repositoryName: openucx/ucx
+            action: edit
+            tag: $(Build.SourceBranchName)
+            isDraft: true
+            addChangeLog: false
+            assetUploadMode: replace
+
   - stage: Release
     jobs:
       - template: az-distro-release.yml

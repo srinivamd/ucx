@@ -64,7 +64,7 @@ jobs:
           AZ_ARTIFACT_NAME: $(artifact_name)
 
       - task: GithubRelease@0
-        displayName: Create/edit GitHub Draft Release
+        displayName: Upload artifacts to draft release
         inputs:
           githubConnection: release
           repositoryName: openucx/ucx
