@@ -44,7 +44,7 @@ jobs:
       - bash: |
           set -eE
           ./contrib/buildrpm.sh -s -t -b
-          find . -name '*.rpm' -exec tar -rvf "${AZ_ARTIFACT_NAME}" {} \;
+          tar -C rpm-dist/`uname -m` -czf "${AZ_ARTIFACT_NAME}" .
         displayName: Build package
         condition: startsWith(variables['artifact_name'], 'centos')
         env:
