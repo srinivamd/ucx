@@ -11,22 +11,22 @@ jobs:
       matrix:
         centos7_cuda10_1:
           build_container: centos7_cuda10_1
-          artifact_name: centos7-cuda10.1.tar
+          artifact_name: ucx-${{ replace(variables['Build.SourceBranch'], 'refs/tags/', '') }}-centos7-mofed5.0-cuda10.1.tar.bz2
         centos7_cuda10_2:
           build_container: centos7_cuda10_2
-          artifact_name: centos7-cuda10.2.tar
+          artifact_name: ucx-${{ replace(variables['Build.SourceBranch'], 'refs/tags/', '') }}-centos7-mofed5.0-cuda10.2.tar.bz2
         ubuntu16_cuda10_1:
           build_container: ubuntu16_cuda10_1
-          artifact_name: ubuntu16.04-cuda10.1.deb
+          artifact_name: ucx-${{ replace(variables['Build.SourceBranch'], 'refs/tags/', '') }}-ubuntu16.04-mofed5.0-cuda10.1.deb
         ubuntu16_cuda10_2:
           build_container: ubuntu16_cuda10_2
-          artifact_name: ubuntu16.04-cuda10.2.deb
+          artifact_name: ucx-${{ replace(variables['Build.SourceBranch'], 'refs/tags/', '') }}-ubuntu16.04-mofed5.0-cuda10.2.deb
         ubuntu18_cuda10_1:
           build_container: ubuntu18_cuda10_1
-          artifact_name: ubuntu18.04-cuda10.1.deb
+          artifact_name: ucx-${{ replace(variables['Build.SourceBranch'], 'refs/tags/', '') }}-ubuntu18.04-mofed5.0-cuda10.1.deb
         ubuntu18_cuda10_2:
           build_container: ubuntu18_cuda10_2
-          artifact_name: ubuntu18.04-cuda10.2.deb
+          artifact_name: ucx-${{ replace(variables['Build.SourceBranch'], 'refs/tags/', '') }}-ubuntu18.04-mofed5.0-cuda10.2.deb
 
     container: $[ variables['build_container'] ]
 
@@ -34,6 +34,7 @@ jobs:
       - checkout: self
         clean: true
         path: "we/need/to/go/deeper"
+        # ^ rpmbuild requires src paths longer then build paths
 
       - bash: |
           set -eE
@@ -44,9 +45,11 @@ jobs:
       - bash: |
           set -eE
           ./contrib/buildrpm.sh -s -t -b
-          tar -C rpm-dist/`uname -m` -czf "${AZ_ARTIFACT_NAME}" .
-        displayName: Build package
-        condition: startsWith(variables['artifact_name'], 'centos')
+          tar -C rpm-dist/`uname -m` -cjf "${AZ_ARTIFACT_NAME}" .
+          ls -l "${AZ_ARTIFACT_NAME}"
+          tar -tf "${AZ_ARTIFACT_NAME}"
+        displayName: Build RPM package
+        condition: and(succeeded(), contains(variables['artifact_name'], 'centos'))
         env:
           AZ_ARTIFACT_NAME: $(artifact_name)
 
@@ -54,8 +57,9 @@ jobs:
           set -eE
           dpkg-buildpackage -us -uc
           find .. -name '*.deb' -exec cp {} "${AZ_ARTIFACT_NAME}" \;
-        displayName: Build package
-        condition: startsWith(variables['artifact_name'], 'ubuntu')
+          ls -l "${AZ_ARTIFACT_NAME}"
+        displayName: Build DEB package
+        condition: and(succeeded(), contains(variables['artifact_name'], 'ubuntu'))
         env:
           AZ_ARTIFACT_NAME: $(artifact_name)
 
